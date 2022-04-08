@@ -364,6 +364,8 @@ def sideGenerateMaze(app):
                     gRow,gCol = random.choice(gridList)
                     app.maze[gRow-1][gCol] = 1
                     gridList = []
+                    
+################################################################################
 
 def onKeyPress(app,event):
     if event.isdigit()== True or event == 'r':
