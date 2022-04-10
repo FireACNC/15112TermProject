@@ -149,7 +149,12 @@ def wilsonGenerateMaze(app,visited = None,lastGrid = None):
         grid1 = random.choice(sorted(app.grids))
         visited = {grid1}
         lastGrid = wilsonChoice(visited,app.grids)
-    lst = wilsonWalk(app,visited,lastGrid,[lastGrid])
+    while True:
+        try:
+            lst = wilsonWalk(app,visited,lastGrid,[lastGrid])
+            break
+        except:
+            continue
     row,col = lastGrid
     visited.add(lastGrid)
     for newRow,newCol in lst[1:]:
@@ -364,7 +369,7 @@ def sideGenerateMaze(app):
                     gRow,gCol = random.choice(gridList)
                     app.maze[gRow-1][gCol] = 1
                     gridList = []
-                    
+
 ################################################################################
 
 def onKeyPress(app,event):
