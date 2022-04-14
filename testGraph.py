@@ -9,7 +9,7 @@ def onAppStart(app):
     app.bounce, app.fraction = 0.8, 0.9
     app.ballCx, app.ballCy, app.ballR = app.mazeCx, app.mazeCy, 10
     app.ballyV, app.ballyAcc = 0, 0.6
-    app.ballxV, app.ballxAcc = 10, 0
+    app.ballxV, app.ballxAcc = 0, 0
     app.paused = False
     app.rotateSpeed = 0
 
@@ -74,7 +74,7 @@ def checkInEdge(app):
         bounceAngle = math.radians(bounceAngle)
         hitAngle = math.radians(hitAngle)
 
-        #Thanks my friend Ken for  teaching me math XD
+        #Thanks my friend Ken for teaching me math XD
         oldxV,oldyV = app.ballxV, app.ballyV
         app.ballxV = -(math.cos(2*bounceAngle)*oldxV + math.sin(2*bounceAngle)*oldyV)
         app.ballyV = -(math.sin(2*bounceAngle)*oldxV - math.cos(2*bounceAngle)*oldyV)

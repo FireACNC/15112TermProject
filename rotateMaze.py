@@ -1,19 +1,11 @@
 from cmu_cs3_graphics import *
 from cmu_graphics.utils import *
 import random, time, copy
+import math
 
 # Methods such as distance and angleTo are used from cmu graphics.
 # getCellBound is learned in class, 15112.
 
-def onAppStart(app):
-    app.row,app.col = 25,25
-    app.gridSize = 20
-    app.width,app.height = 800,800
-    app.margin = 150
-    app.title = 'Initialized Maze'
-    app.rotateAngle = 0
-    initMaze(app)
-    
 def initMaze(app):
     app.maze = [[0]*app.row for col in range(app.col)]
     app.maze[0][1] = app.maze[-1][-2] = 1
@@ -33,7 +25,9 @@ def initMaze(app):
             if (row,col) not in app.grids and (row%2 != 0 or col%2 != 0): 
                 app.walls.add((row,col))
 
-    app.path = [(0,1)]
+    #faster if the grid is only updated while maze is updated.
+    storeGrid(app)
+
 
 ################################################################################
 
@@ -375,89 +369,44 @@ def sideGenerateMaze(app):
 
 ################################################################################
 
-
-#Solve the maze using recursive backtracker!
-
-
-oneLineSolve = lambda maze,path,start,end : path if end in path else [ans for ans in [oneLineSolve(maze,path+[(start[0]+drow,start[1]+dcol)],(start[0]+drow,start[1]+dcol),end) for drow,dcol in [(-1,0),(0,1),(0,-1),(1,0)] if (start[0]+drow,start[1]+dcol) not in path and (0 < start[0]+drow < len(maze)) and (0 < start[1]+dcol < len(maze[0])) and maze[start[0]+drow][start[1]+dcol] == 1] if ans]
-
-def rbSolveMaze(app,start,end):
-    if end in app.path: return True
-    for drow,dcol in [(-1,0),(0,1),(0,-1),(1,0)]:
-        newRow,newCol = start[0]+drow,start[1]+dcol
-        if (newRow,newCol) not in app.path and (0 < newRow < app.row) and (0 < newCol < app.col) and app.maze[newRow][newCol] == 1:
-            app.path.append((newRow,newCol))
-            res = rbSolveMaze(app,(newRow,newCol),end)
-            if res: return True
-            app.path.pop()
-    return False
-    
-
-
-
-################################################################################
-
-
-def onKeyPress(app,event):
-    if event.isdigit()== True or event == 'r':
-        app.title = 'Initialized Maze'
-        initMaze(app)
-    if event == '1':
-        app.title = 'Recursive Backtracker'
-        btGenerateMaze(app,{(1,1)},(1,1))
-    elif event == '2':
-        app.title = "Kruskal's Algorithm"
-        krusGenerateMaze(app,sorted(app.walls))
-    elif event == '3':
-        app.title = "Prim's Algorithm"
-        primGenerateMaze(app,(1,1))
-    elif event == '4':
-        app.title = "Wilson's Algorithm"
-        wilsonGenerateMaze(app)
-    elif event == '5':
-        app.title = "Hunt-and-Kill Algorithm"
-        hakGenerateMaze(app)
-    elif event == '6':
-        app.title = "Eller's Algorithm"
-        ellerGenerateMaze(app)
-    elif event == '7':
-        app.title = "Recursive Division"
-        recDivGenerateMaze(app)
-    elif event == '8':
-        app.title = "Binary Tree"
-        binaryGenerateMaze(app)
-    elif event == '9':
-        app.title = "Sidewinder Algorith"
-        sideGenerateMaze(app)
-    elif event == 's':
-        rbSolveMaze(app,(0,1),(app.row-1,app.col-2))
-    elif event == 'o':
-        path = oneLineSolve(app.maze,[(0,1)],(0,1),(app.row-1,app.col-2))
-        print(path)
-
-def redrawAll(app):
-    drawGrid(app)
-    drawTitle(app)
-    drawSol(app)
-
 def drawGrid(app):
+    for row in range(app.row):
+        for col in range(app.col):
+            grid = app.gridPara[row][col]
+            color = grid[-1]
+            drawRect(*grid[:-1],fill = color,rotateAngle = math.degrees(app.rotateAngle),align = 'center')
+
+def storeGrid(app):
+    app.gridPara = [[0]*app.row for col in range(app.col)]
     for row in range(app.row):
         for col in range(app.col):
             color = 'black' if app.maze[row][col] == 0 else 'white'
             para = getCellBound(app,row,col)
-            drawRect(*para,fill = color)
+            unit = getUnit(*para,color,app)
+            app.gridPara[row][col] = unit
+            #cx,cy,width,height,color
+
+#there is some problem in passing in the parameter... the position of left and top
+#are OPPOSITE but that is the only way this code work! No idea what is happening...
+def getUnit(left,top,width,height,color,app):
+    midx,midy = app.width/2-app.gridSize/2,app.height/2-app.gridSize/2
+    dis = distance(left,top,midx,midy)
+    dx, dy = left - midx, top - midy
+    if dis == 0:
+        newx,newy = midx + app.gridSize/2 ,midy + app.gridSize/2
+    else:
+        chx = 1 if dx == 0 else dx//abs(dx)
+        chy = 1 if dy == 0 else dy//abs(dy) 
+        dx, dy = abs(dx),abs(dy)
+        sinV,cosV = math.asin(dx/dis),math.acos(dy/dis)
+        newSin,newCos = sinV + chx*chy*app.rotateAngle, cosV + chx*chy*app.rotateAngle
+        newx,newy = midx + chx * math.sin(newSin) * dis + app.gridSize/2, midy + chy * math.cos(newCos) * dis + app.gridSize/2
+    return (newy,newx,width,height,color)
 
 def drawTitle(app):
-    drawLabel(app.title,app.width/2,app.margin/2,size = app.margin/2)
-
-def drawSol(app):
-    for row,col in app.path:
-        top,left = getCellBound(app,row,col)[:2]
-        drawCircle(top+app.gridSize/2,left+app.gridSize/2,app.gridSize/4,fill = 'blue')
+    drawLabel(app.title,app.width/2,app.ymargin/2,size = app.ymargin/2)
 
 def getCellBound(app,row,col):
-    top = app.margin + col * app.gridSize
-    left = app.margin + row * app.gridSize
+    left = app.xmargin + col * app.gridSize
+    top = app.ymargin + row * app.gridSize
     return top,left,app.gridSize,app.gridSize
-
-runApp()
