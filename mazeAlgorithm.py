@@ -2,6 +2,9 @@ from cmu_cs3_graphics import *
 from cmu_graphics.utils import *
 import random, time, copy
 
+#This is a seperate part merely for exploring maze algorithm. Major code is same
+#as rotate maze.
+
 # Methods such as distance and angleTo are used from cmu graphics.
 # getCellBound is learned in class, 15112.
 
@@ -15,7 +18,7 @@ def onAppStart(app):
     initMaze(app)
     
 def initMaze(app):
-    app.maze = [[0]*app.row for col in range(app.col)]
+    app.maze = [[0]*app.col for row in range(app.row)]
     app.maze[0][1] = app.maze[-1][-2] = 1
 
     #taking even row/col as walls and odd ones as grid
@@ -33,7 +36,7 @@ def initMaze(app):
             if (row,col) not in app.grids and (row%2 != 0 or col%2 != 0): 
                 app.walls.add((row,col))
 
-    app.path = [(0,1)]
+    app.path = []
 
 ################################################################################
 
@@ -379,9 +382,10 @@ def sideGenerateMaze(app):
 #Solve the maze using recursive backtracker!
 
 
-oneLineSolve = lambda maze,path,start,end : path if end in path else [ans for ans in [oneLineSolve(maze,path+[(start[0]+drow,start[1]+dcol)],(start[0]+drow,start[1]+dcol),end) for drow,dcol in [(-1,0),(0,1),(0,-1),(1,0)] if (start[0]+drow,start[1]+dcol) not in path and (0 < start[0]+drow < len(maze)) and (0 < start[1]+dcol < len(maze[0])) and maze[start[0]+drow][start[1]+dcol] == 1] if ans]
+oneLineSolve = lambda maze,path,start,end : path if end in path else list(map(lambda L: L if isinstance(L[0],tuple) else L[0],[ans for ans in [oneLineSolve(maze,path+[(start[0]+drow,start[1]+dcol)],(start[0]+drow,start[1]+dcol),end) for drow,dcol in [(-1,0),(0,1),(0,-1),(1,0)] if (start[0]+drow,start[1]+dcol) not in path and (0 < start[0]+drow < len(maze)) and (0 < start[1]+dcol < len(maze[0])) and maze[start[0]+drow][start[1]+dcol] == 1] if ans]))
 
 def rbSolveMaze(app,start,end):
+    if app.path == []: app.path.append(start)
     if end in app.path: return True
     for drow,dcol in [(-1,0),(0,1),(0,-1),(1,0)]:
         newRow,newCol = start[0]+drow,start[1]+dcol
@@ -427,12 +431,12 @@ def onKeyPress(app,event):
         app.title = "Binary Tree"
         binaryGenerateMaze(app)
     elif event == '9':
-        app.title = "Sidewinder Algorith"
+        app.title = "Sidewinder Algorithm"
         sideGenerateMaze(app)
     elif event == 's':
         rbSolveMaze(app,(0,1),(app.row-1,app.col-2))
     elif event == 'o':
-        path = oneLineSolve(app.maze,[(0,1)],(0,1),(app.row-1,app.col-2))
+        path = oneLineSolve(app.maze,[(0,1)],(0,1),(app.row-1,app.col-2))[0]
         print(path)
 
 def redrawAll(app):

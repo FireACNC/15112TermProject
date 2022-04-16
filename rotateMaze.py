@@ -7,9 +7,9 @@ import math
 # getCellBound is learned in class, 15112.
 
 def initMaze(app):
-    app.maze = [[0]*app.row for col in range(app.col)]
-    app.maze[0][1] = app.maze[-1][-2] = 1
-
+    app.maze = [[0]*app.col for row in range(app.row)]
+    #The exit
+    app.maze[-1][-2] = 1
     #taking even row/col as walls and odd ones as grid
     app.grids = set()
     for row in range(1,app.row,2):
@@ -369,6 +369,11 @@ def sideGenerateMaze(app):
 
 ################################################################################
 
+#There are 300 lines for writing maze, but only ONE line for solving all of them!!!
+oneLineSolve = lambda maze,path,start,end : [path] if end in path else list(map(lambda L: L if isinstance(L[0],tuple) else L[0],[ans for ans in [oneLineSolve(maze,path+[(start[0]+drow,start[1]+dcol)],(start[0]+drow,start[1]+dcol),end) for drow,dcol in [(-1,0),(0,1),(0,-1),(1,0)] if (start[0]+drow,start[1]+dcol) not in path and (0 < start[0]+drow < len(maze)) and (0 < start[1]+dcol < len(maze[0])) and maze[start[0]+drow][start[1]+dcol] == 1] if ans]))
+
+################################################################################
+
 def drawGrid(app):
     for row in range(app.row):
         for col in range(app.col):
@@ -377,14 +382,40 @@ def drawGrid(app):
             drawRect(*grid[:-1],fill = color,rotateAngle = math.degrees(app.rotateAngle),align = 'center')
 
 def storeGrid(app):
-    app.gridPara = [[0]*app.row for col in range(app.col)]
+    app.gridPara = [[0]*app.col for row in range(app.row)]
     for row in range(app.row):
         for col in range(app.col):
-            color = 'black' if app.maze[row][col] == 0 else 'white'
+            if app.maze[row][col] == 0:
+                color = 'sienna'
+            elif app.maze[row][col] == 1:
+                color = app.background
+            elif app.maze[row][col] == 2:
+                color = 'gold'
             para = getCellBound(app,row,col)
             unit = getUnit(*para,color,app)
             app.gridPara[row][col] = unit
             #cx,cy,width,height,color
+
+    app.solPara = []
+    for row,col in app.sol:
+        color = 'tan'
+        para = getCellBound(app,row,col)
+        unit = getUnit(*para,color,app)
+        app.solPara.append(unit)
+
+    app.keysPara = []
+    for row,col in app.keys:
+        color = 'gold'
+        para = getCellBound(app,row,col)
+        unit = getUnit(*para,color,app)
+        app.keysPara.append(unit)
+
+    app.lockPara = []
+    for row,col in app.lock:
+        color = 'black'
+        para = getCellBound(app,row,col)
+        unit = getUnit(*para,color,app)
+        app.lockPara.append(unit)
 
 #there is some problem in passing in the parameter... the position of left and top
 #are OPPOSITE but that is the only way this code work! No idea what is happening...
@@ -403,10 +434,32 @@ def getUnit(left,top,width,height,color,app):
         newx,newy = midx + chx * math.sin(newSin) * dis + app.gridSize/2, midy + chy * math.cos(newCos) * dis + app.gridSize/2
     return (newy,newx,width,height,color)
 
-def drawTitle(app):
-    drawLabel(app.title,app.width/2,app.ymargin/2,size = app.ymargin/2)
-
 def getCellBound(app,row,col):
     left = app.xmargin + col * app.gridSize
     top = app.ymargin + row * app.gridSize
     return top,left,app.gridSize,app.gridSize
+
+def drawSol(app):
+    for index in range(len(app.sol)):
+        grid = app.solPara[index]
+        color = grid[-1]
+        drawCircle(*grid[:2],app.gridSize/8,fill = color,rotateAngle = math.degrees(app.rotateAngle),align = 'center')
+
+################################################################################
+
+#lock and key feature
+def lockMaze(app):
+    app.maze[-1][-2] = 2
+    app.lock.append((app.row-1,app.col-2))
+    #add a random key
+    app.keys.append(random.choice(sorted(app.grids)))
+
+def drawKey(app):
+    for key in app.keysPara:
+        cx,cy = key[:2]
+        color = key[-1]
+        drawCircle(cx,cy,app.gridSize/3,fill = color,border = 'black',borderWidth = app.gridSize/10,rotateAngle = math.degrees(app.rotateAngle),align = 'center')
+    for lock in app.lockPara:
+        color = lock[-1]
+        drawCircle(*lock[:2],app.gridSize/8,fill = color,rotateAngle = math.degrees(app.rotateAngle),align = 'center')
+    
