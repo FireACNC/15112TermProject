@@ -443,14 +443,23 @@ def drawSol(app):
     for index in range(len(app.sol)):
         grid = app.solPara[index]
         color = grid[-1]
-        drawCircle(*grid[:2],app.gridSize/8,fill = color,rotateAngle = math.degrees(app.rotateAngle),align = 'center')
+        drawCircle(*grid[:2],app.gridSize/8,fill = color,
+            rotateAngle = math.degrees(app.rotateAngle),align = 'center')
+
+def drawMazeTitle(app):
+    relTitlePos = getCellBound(app,-1,app.col//2)
+    titlePos = getUnit(*relTitlePos,None,app)[:2]
+    drawLabel(f"Current Maze: {app.mazeTitle}",*titlePos,
+        size = app.width/30,font = 'mono',fill = 'black',bold = True, 
+        rotateAngle = math.degrees(app.rotateAngle))
 
 ################################################################################
 
 #lock and key feature
 def lockMaze(app):
     app.maze[-1][-2] = 2
-    app.lock.append((app.row-1,app.col-2))
+    if (app.row-1,app.col-2) not in app.lock:
+        app.lock.append((app.row-1,app.col-2)) 
     #add a random key
     app.keys.append(random.choice(sorted(app.grids)))
 

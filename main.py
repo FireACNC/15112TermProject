@@ -1,16 +1,24 @@
 from rotateMaze import *
 from spider import *
 from anime import *
+from gameUI import *
 
 def onAppStart(app):
     app.background = 'wheat'
-    app.row,app.col = 7,7
+    app.row,app.col = 5,5
     app.width = app.height = 800
-    app.paused = False
-    app.status = None
+    app.setting = True
+    app.status = 'Init'
+    app.level = 0
+    app.tick = 0
+    app.title = 'Spider - No Way Home'
     
     app.circleAnime = Anime(app,'Circle')
     app.coverAnime = Anime(app,'Cover')
+    app.mazeIndex = None
+    app.mazeTitle = None
+    app.lockAndKey = 'Disabled'
+    app.mouseX,app.mouseY = 0,0
     initGame(app)
 
 def initGame(app):
@@ -30,37 +38,52 @@ def initGame(app):
     app.keysPara = []
     initMaze(app)
     #random select algorithm
-    mazeIndex = random.randint(0,8)
+    mazeIndex = random.randint(0,8) if app.mazeIndex == None else app.mazeIndex
+
     if mazeIndex == 0:
         btGenerateMaze(app,{(1,1)},(1,1))
+        app.mazeTitle = 'Recursive Backtracker'
     elif mazeIndex == 1:
         krusGenerateMaze(app,sorted(app.walls))
+        app.mazeTitle = "Kruskal's Algorithm"
     elif mazeIndex == 2:
         primGenerateMaze(app,(1,1))
+        app.mazeTitle = "Prim's Algorithm"
     elif mazeIndex == 3:
         wilsonGenerateMaze(app)
+        app.mazeTitle = "Wilson's Algorithm"
     elif mazeIndex == 4:
         hakGenerateMaze(app)
+        app.mazeTitle = "Hunt-and-Kill Algorithm"
     elif mazeIndex == 5:
         ellerGenerateMaze(app)
+        app.mazeTitle = "Eller's Algorithm"
     elif mazeIndex == 6:
         recDivGenerateMaze(app)
+        app.mazeTitle = "Recursive Division"
     elif mazeIndex == 7:
         binaryGenerateMaze(app)
+        app.mazeTitle = "Binary Tree"
     elif mazeIndex == 8:
         sideGenerateMaze(app)
+        app.mazeTitle = "Sidewinder Algorithm"
+    app.mazeChoice = app.mazeTitle if app.mazeIndex != None else 'Random'
+
+    if app.lockAndKey == 'Enabled': 
+        lockMaze(app)
     app.spider = Spider(app,1,1,'saddleBrown')
 
 
 def onStep(app):
-    if not app.paused:
+    if not app.setting:
         doStep(app)
+    checkStatus(app)
+    levelUp(app)
+    app.tick += 1
 
 def doStep(app):
     app.spider.update(app)
     rotateMap(app)
-    checkStatus(app)
-    levelUp(app)
     findPath(app)
 
 def rotateMap(app):
@@ -75,10 +98,11 @@ def rotateMap(app):
 
 def levelUp(app):
     if app.status == 'Load':
-        if app.row < 15:
+        if app.row < 15 and app.level != 0:
             app.row += 2
             app.col += 2
         initGame(app)
+        app.level += 1
         app.status = 'Over'
 
 def findPath(app):
@@ -88,8 +112,8 @@ def findPath(app):
         relx,rely = relPos(app.spider.cx,app.spider.cy,app)
         row,col = pointInMaze(relx,rely,app)
         if 0 < row < app.row and 0 < col < app.col:
-            #check if there is lock
-            if app.lock != []:
+            #check if there is key
+            if app.keys != []:
                 targetR,targetC = app.keys[0]
             else: targetR,targetC = app.row-1,app.col-2
             app.sol = oneLineSolve(app.maze,[(row,col)],(row,col),(targetR,targetC))[0]
@@ -101,28 +125,63 @@ def onKeyHold(app,key):
     elif 'd' in key:
         app.rotateSpeed += 3
 
+def onMouseMove(app,x,y):
+    app.mouseX,app.mouseY = x,y
+
 def onMousePress(app,x,y):
-    app.spider.cx = x
-    app.spider.cy = y
-    app.spider.xV, app.spider.yV = 0,0
+    if app.setting:
+        if app.width*0.1 < x < app.width*0.9:
+            if abs(y - 8.5*app.height/16)< app.height / 32:
+                #change maze size
+                app.row += 2
+                app.col += 2
+                if app.row > 15 or app.col > 15:
+                    app.row, app.col = 5,5
+                initGame(app)
+            elif abs(y - 10*app.height/16)< app.height / 32:
+                #switch maze algorithm
+                if app.mazeIndex == None: app.mazeIndex = 0
+                elif app.mazeIndex >= 8: app.mazeIndex = None
+                else: app.mazeIndex += 1
+                initGame(app)
+            elif abs(y - 11.5*app.height/16)< app.height / 32:
+                #change Lock and key
+                app.lockAndKey = 'Disabled' if app.lockAndKey != 'Disabled' else 'Enabled'
+                initGame(app)
+        
+        if abs(app.mouseX - app.width/2) < app.width*0.1 and (
+            abs(app.mouseY - app.height*14/16) < app.height / 32):
+            app.setting = not app.setting
+
 
 def onKeyPress(app,event):
-    if event == 'p':
-        app.paused = not app.paused
-    elif event == 's':
-        doStep(app)
+    if app.level == 0:
+        app.status = 'Pass'
+        return
+
+    if event == 'escape':
+        app.setting = not app.setting
+    # elif event == 's':
+    #     doStep(app)
     elif event == 'r':
         initGame(app)
-    elif event == 'b':
+    elif event == 's':
         app.solve = not app.solve
-    elif event == 'l':
-        lockMaze(app)
+    # elif event == 'l':
+    #     lockMaze(app)
 
 def redrawAll(app):
-    drawGrid(app)
-    if app.sol != []: drawSol(app)
-    drawSpider(app)
-    drawKey(app)
+    if app.level == 0:
+        drawStart(app)
+    elif app.setting:
+        drawSetting(app)
+    else:
+        drawGrid(app)
+        drawMazeTitle(app)
+        if app.sol != []: drawSol(app)
+        drawSpider(app)
+        drawKey(app)
+
     drawAnime(app)
 
 

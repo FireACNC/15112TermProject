@@ -20,8 +20,9 @@ class Spider(object):
         #check key collision
         if (oldRow,oldCol) in app.keys:
             app.keys.remove((oldRow,oldCol))
-            lockR,lockC = app.lock.pop()
-            app.maze[lockR][lockC] = 1
+            if app.keys == []:
+                lockR,lockC = app.lock.pop()
+                app.maze[lockR][lockC] = 1
 
         self.xV += self.xAcc
         self.yV += self.yAcc
@@ -102,7 +103,7 @@ class Spider(object):
         if abs(self.xV > 0.01) and abs(self.yV > 0.01):
             self.rotate -= min(-math.pi/30,max(math.pi/30,self.xV / self.yV // 10))
 
-        if self.cy > app.height and app.status == None:
+        if self.cy > app.height and app.status == 'Game':
             app.status = 'Pass'
 
         relx,rely = relPos(self.cx,self.cy,app)
@@ -183,4 +184,10 @@ def drawSpider(app):
         dis = s.r*0.55
         cx,cy = s.cx+dis*math.sin(math.radians(eyeAngle)),s.cy-dis*math.cos(math.radians(eyeAngle))
         drawCircle(cx,cy,s.r/4, fill = 'white', border = 'black',borderWidth = s.r/20)
-        drawCircle(cx,cy,s.r/9, fill = 'black')
+
+        #movable eyes
+        relAngle = math.radians(angleTo(cx,cy,app.mouseX,app.mouseY))
+        maxDis = (s.r/4-s.r/9)
+        newDis = min(maxDis,distance(cx,cy,app.mouseX,app.mouseY))
+        newCenter = (cx + math.sin(relAngle)*newDis,cy - math.cos(relAngle)*newDis)
+        drawCircle(*newCenter,s.r/9, fill = 'black')
