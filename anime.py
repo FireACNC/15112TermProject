@@ -21,6 +21,7 @@ def checkStatus(app):
                 app.circleAnime.cx,app.circleAnime.cy = 570,220
             else:
                 app.circleAnime.cx,app.circleAnime.cy = app.spider.cx,app.spider.cy
+            app.sound['ding'].play()
         app.circleAnime.tick += 1
         app.coverAnime.tick += 1
         if app.coverAnime.tick >= int(100/1.2):

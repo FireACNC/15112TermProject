@@ -3,6 +3,7 @@ from spider import *
 from anime import *
 from gameUI import *
 from bomb import *
+from media import *
 
 def onAppStart(app):
     app.background = 'wheat'
@@ -22,6 +23,7 @@ def onAppStart(app):
     app.double = 'Disabled'
     app.mouseX,app.mouseY = 0,0
     initGame(app)
+    loadMedia(app)
 
 def initGame(app):
     app.gridSize = app.width // (max(app.col,app.row) + 5)
@@ -103,6 +105,10 @@ def rotateMap(app):
     app.rotateSpeed /= 1.5
     if abs(app.rotateSpeed) < 1:
         app.rotateSpeed = 0 
+        app.sound['turn'].pause()
+        app.turnPlay = 0
+    else:
+        app.sound['turn'].play()
     storeGrid(app)
     if app.spider.onWall: 
         app.spider.moveWithWall(app,dAngle)

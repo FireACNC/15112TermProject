@@ -34,9 +34,10 @@ def placeBomb(app,x,y):
     relx,rely = relPos(x,y,app)
     brow,bcol = pointInMaze(relx,rely,app)
     if not 0<=brow<app.row or not 0<=bcol<app.col: return
-    if (brow,bcol) != (app.spider.row,app.spider.col): #one bomb at a time
-        app.bombs.append(Bomb(brow,bcol))
-        app.maze[brow][bcol] = 0
+    if abs(brow-app.spider.row) <= 1 and abs(bcol-app.spider.col) <= 1: return
+    app.bombs.append(Bomb(brow,bcol))
+    app.maze[brow][bcol] = 0
+    app.sound['countdown'].play()
 
 def updateBomb(app):
     for bomb in app.bombs: 
@@ -52,6 +53,8 @@ def updateBomb(app):
                     if app.spider.row == nrow and app.spider.col == ncol:
                         app.status = 'Pass'
                         app.spider.alive = False
+            app.sound['countdown'].pause()
+            app.sound['explode'].play()
         if bomb.tick <= 0:
             pos = app.bombs.index(bomb)
             app.bombs.pop(pos)

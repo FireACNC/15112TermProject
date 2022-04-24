@@ -28,6 +28,7 @@ class Spider(object):
                 lockR,lockC = app.lock.pop()
                 app.maze[lockR][lockC] = 1
                 app.floors.append((lockR,lockC))
+                app.sound['unlock'].play()
 
         self.xV += self.xAcc
         self.yV += self.yAcc
