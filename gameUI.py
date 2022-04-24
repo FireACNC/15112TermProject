@@ -57,6 +57,8 @@ def drawSetting(app):
         'Press S to enable path finder',
         'Press Esc to get here',
     ]
+    if app.double == 'Enabled':
+        instructions[2] = 'Click to Place a Bomb'
     for i in range(len(instructions)):
         text = instructions[i]
         drawLabel(text,app.width/2,(i+2)*app.height/15,size = app.height/30,
@@ -68,7 +70,8 @@ def drawSetting(app):
     settings = [
         f'Maze Size: {app.row}x{app.col}',
         f'Maze Algorithm: {app.mazeChoice}',
-        f'Lock & Key: {app.lockAndKey}'
+        f'Lock & Key: {app.lockAndKey}',
+        f'Bombs: {app.double}'
     ]
     for i in range(len(settings)):
         text = settings[i]
@@ -83,9 +86,9 @@ def drawSetting(app):
 
     color = None
     if abs(app.mouseX - app.width/2) < app.width*0.1 and (
-            abs(app.mouseY - app.height*14/16) < app.height / 32):
+            abs(app.mouseY - app.height*15/16) < app.height / 32):
             color = 'tan'
-    drawRect(app.width/2,app.height*14/16,app.width*0.2,app.height/16,
+    drawRect(app.width/2,app.height*15/16,app.width*0.2,app.height/16,
         align = 'center', fill = color, border = 'sienna', borderWidth = 5)
-    drawLabel('Done',app.width/2,app.height*14/16,size = app.height/30,
+    drawLabel('Done',app.width/2,app.height*15/16,size = app.height/30,
             font = 'mono', fill = 'sienna')

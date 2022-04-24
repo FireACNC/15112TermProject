@@ -2,10 +2,11 @@ from rotateMaze import *
 from spider import *
 from anime import *
 from gameUI import *
+from bomb import *
 
 def onAppStart(app):
     app.background = 'wheat'
-    app.row,app.col = 5,5
+    app.row,app.col = 9,9
     app.width = app.height = 800
     app.setting = True
     app.status = 'Init'
@@ -18,6 +19,7 @@ def onAppStart(app):
     app.mazeIndex = None
     app.mazeTitle = None
     app.lockAndKey = 'Disabled'
+    app.double = 'Disabled'
     app.mouseX,app.mouseY = 0,0
     initGame(app)
 
@@ -28,6 +30,7 @@ def initGame(app):
     app.rotateSpeed = 0
     app.rotateAngle = 0
     app.gridPara = [[0]*app.col for row in range(app.row)]
+    app.allGridPara = {}
 
     app.solve = False
     app.sol = []
@@ -36,6 +39,10 @@ def initGame(app):
     app.lockPara = []
     app.keys = []
     app.keysPara = []
+    app.floors = []
+    app.floorsPara = []
+    app.bombs = []
+    app.bombsPara = []
     initMaze(app)
     #random select algorithm
     mazeIndex = random.randint(0,8) if app.mazeIndex == None else app.mazeIndex
@@ -71,6 +78,9 @@ def initGame(app):
 
     if app.lockAndKey == 'Enabled': 
         lockMaze(app)
+
+    loadGrid(app)
+    storeGrid(app)
     app.spider = Spider(app,1,1,'saddleBrown')
 
 
@@ -85,6 +95,7 @@ def doStep(app):
     app.spider.update(app)
     rotateMap(app)
     findPath(app)
+    updateBomb(app)
 
 def rotateMap(app):
     dAngle = math.radians(app.rotateSpeed)
@@ -98,16 +109,13 @@ def rotateMap(app):
 
 def levelUp(app):
     if app.status == 'Load':
-        if app.row < 15 and app.level != 0:
-            app.row += 2
-            app.col += 2
+        if app.spider.alive: app.level += 1
         initGame(app)
-        app.level += 1
         app.status = 'Over'
 
 def findPath(app):
     app.sol = []
-    if app.solve:
+    if app.solve and app.floors == [] and app.bombs == []:
         #check is spider in maze
         relx,rely = relPos(app.spider.cx,app.spider.cy,app)
         row,col = pointInMaze(relx,rely,app)
@@ -148,10 +156,18 @@ def onMousePress(app,x,y):
                 #change Lock and key
                 app.lockAndKey = 'Disabled' if app.lockAndKey != 'Disabled' else 'Enabled'
                 initGame(app)
+            elif abs(y - 13*app.height/16)< app.height / 32:
+                #change bomb
+                app.double = 'Disabled' if app.double != 'Disabled' else 'Enabled'
+                initGame(app)
         
         if abs(app.mouseX - app.width/2) < app.width*0.1 and (
-            abs(app.mouseY - app.height*14/16) < app.height / 32):
+            abs(app.mouseY - app.height*15/16) < app.height / 32):
             app.setting = not app.setting
+    
+    else:
+        if app.double == 'Enabled':
+            placeBomb(app,x,y)
 
 
 def onKeyPress(app,event):
@@ -177,10 +193,12 @@ def redrawAll(app):
         drawSetting(app)
     else:
         drawGrid(app)
+        drawFloors(app)
         drawMazeTitle(app)
         if app.sol != []: drawSol(app)
         drawSpider(app)
         drawKey(app)
+        drawBomb(app)
 
     drawAnime(app)
 

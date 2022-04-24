@@ -26,7 +26,6 @@ def initMaze(app):
                 app.walls.add((row,col))
 
     #faster if the grid is only updated while maze is updated.
-    storeGrid(app)
 
 
 ################################################################################
@@ -381,20 +380,43 @@ def drawGrid(app):
             color = grid[-1]
             drawRect(*grid[:-1],fill = color,rotateAngle = math.degrees(app.rotateAngle),align = 'center')
 
+def loadGrid(app):
+    app.allGridPara = {}
+    for angle in range(0,720):
+        dangle = math.radians(angle/2)
+        paraAtAngle = [[0]*app.col for row in range(app.row)]
+        for row in range(app.row):
+            for col in range(app.col):
+                if app.maze[row][col] == 0:
+                    color = 'sienna'
+                elif app.maze[row][col] == 1:
+                    color = app.background
+                elif app.maze[row][col] == 2:
+                    color = 'gold'
+                para = getCellBound(app,row,col)
+                unit = getUnit(*para,color,app,dangle)
+                paraAtAngle[row][col] = unit
+                #cx,cy,width,height,color
+        app.allGridPara[angle] = paraAtAngle
+
 def storeGrid(app):
-    app.gridPara = [[0]*app.col for row in range(app.row)]
-    for row in range(app.row):
-        for col in range(app.col):
-            if app.maze[row][col] == 0:
-                color = 'sienna'
-            elif app.maze[row][col] == 1:
-                color = app.background
-            elif app.maze[row][col] == 2:
-                color = 'gold'
-            para = getCellBound(app,row,col)
-            unit = getUnit(*para,color,app)
-            app.gridPara[row][col] = unit
-            #cx,cy,width,height,color
+    degreeIndex = int(math.degrees(app.rotateAngle)*2)%720
+    if degreeIndex in app.allGridPara:
+        app.gridPara = app.allGridPara[degreeIndex]
+    else:
+        app.gridPara = [[0]*app.col for row in range(app.row)]
+        for row in range(app.row):
+            for col in range(app.col):
+                if app.maze[row][col] == 0:
+                    color = 'sienna'
+                elif app.maze[row][col] == 1:
+                    color = app.background
+                elif app.maze[row][col] == 2:
+                    color = 'gold'
+                para = getCellBound(app,row,col)
+                unit = getUnit(*para,color,app)
+                app.gridPara[row][col] = unit
+                #cx,cy,width,height,color
 
     app.solPara = []
     for row,col in app.sol:
@@ -417,9 +439,25 @@ def storeGrid(app):
         unit = getUnit(*para,color,app)
         app.lockPara.append(unit)
 
+    app.floorsPara = []
+    for row,col in app.floors:
+        color = 'wheat'
+        para = getCellBound(app,row,col)
+        unit = getUnit(*para,color,app)
+        app.floorsPara.append(unit)
+
+    app.bombsPara = []
+    for bomb in app.bombs:
+        row,col = bomb.row, bomb.col
+        color = bomb.color
+        para = getCellBound(app,row,col)
+        unit = getUnit(*para,color,app)
+        app.bombsPara.append(unit)
+
 #there is some problem in passing in the parameter... the position of left and top
 #are OPPOSITE but that is the only way this code work! No idea what is happening...
-def getUnit(left,top,width,height,color,app):
+def getUnit(left,top,width,height,color,app,angle = None):
+    if angle is None: angle = app.rotateAngle
     midx,midy = app.width/2-app.gridSize/2,app.height/2-app.gridSize/2
     dis = distance(left,top,midx,midy)
     dx, dy = left - midx, top - midy
@@ -430,7 +468,7 @@ def getUnit(left,top,width,height,color,app):
         chy = 1 if dy == 0 else dy//abs(dy) 
         dx, dy = abs(dx),abs(dy)
         sinV,cosV = math.asin(dx/dis),math.acos(dy/dis)
-        newSin,newCos = sinV + chx*chy*app.rotateAngle, cosV + chx*chy*app.rotateAngle
+        newSin,newCos = sinV + chx*chy*angle, cosV + chx*chy*angle
         newx,newy = midx + chx * math.sin(newSin) * dis + app.gridSize/2, midy + chy * math.cos(newCos) * dis + app.gridSize/2
     return (newy,newx,width,height,color)
 
@@ -447,11 +485,14 @@ def drawSol(app):
             rotateAngle = math.degrees(app.rotateAngle),align = 'center')
 
 def drawMazeTitle(app):
-    relTitlePos = getCellBound(app,-1,app.col//2)
-    titlePos = getUnit(*relTitlePos,None,app)[:2]
-    drawLabel(f"Current Maze: {app.mazeTitle}",*titlePos,
-        size = app.width/30,font = 'mono',fill = 'black',bold = True, 
-        rotateAngle = math.degrees(app.rotateAngle))
+    for title,rowNum in [(f"Current Maze: {app.mazeTitle}",-1),(f"Maze Solved: {app.level-1}",app.row)]:
+        relTitlePos = getCellBound(app,rowNum,app.col//2)
+        titlePos = getUnit(*relTitlePos,None,app)[:2]
+        drawLabel(title,*titlePos,
+            size = app.width/30,font = 'mono',fill = 'black',bold = True, 
+            rotateAngle = math.degrees(app.rotateAngle))
+
+    
 
 ################################################################################
 
@@ -461,14 +502,21 @@ def lockMaze(app):
     if (app.row-1,app.col-2) not in app.lock:
         app.lock.append((app.row-1,app.col-2)) 
     #add a random key
-    app.keys.append(random.choice(sorted(app.grids)))
+    gridLst = sorted(app.grids)
+    gridLst.remove((1,1))
+    app.keys.append(random.choice(gridLst))
 
 def drawKey(app):
     for key in app.keysPara:
         cx,cy = key[:2]
         color = key[-1]
-        drawCircle(cx,cy,app.gridSize/3,fill = color,border = 'black',borderWidth = app.gridSize/10,rotateAngle = math.degrees(app.rotateAngle),align = 'center')
+        drawCircle(cx,cy,app.gridSize/3,fill = color,border = 'white',borderWidth = app.gridSize/10,rotateAngle = math.degrees(app.rotateAngle),align = 'center')
     for lock in app.lockPara:
         color = lock[-1]
-        drawCircle(*lock[:2],app.gridSize/8,fill = color,rotateAngle = math.degrees(app.rotateAngle),align = 'center')
+        drawCircle(*lock[:2],app.gridSize/8,fill = 'white',rotateAngle = math.degrees(app.rotateAngle),align = 'center')
     
+def drawFloors(app):
+    #because it is slow to revise the para of all maze, draw floor above instead.
+    for floors in app.floorsPara:
+        color = floors[-1]
+        drawRect(*floors[:-1],fill = color,rotateAngle = math.degrees(app.rotateAngle),align = 'center')

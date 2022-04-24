@@ -4,6 +4,7 @@ from cmu_graphics.utils import *
 class Spider(object):
     def __init__(self,app,row,col,color):
         self.cx, self.cy = app.gridPara[row][col][:2]
+        self.row,self.col = 1,1
         self.r = app.gridSize/3
         self.xV,self.yV = 0,0
         self.xAcc,self.yAcc = 0, 0.8
@@ -11,18 +12,22 @@ class Spider(object):
         self.onWall = True
         self.color = color
         self.rotate = 0
+        self.alive = True
     
     def update(self,app):
+        if not self.alive: return
         oldX,oldY = self.cx,self.cy
         oldRelx,oldRely = relPos(oldX,oldY,app)
         oldRow,oldCol = pointInMaze(oldRelx,oldRely,app)
-
+        self.row,self.col = oldRow,oldCol
+        
         #check key collision
         if (oldRow,oldCol) in app.keys:
             app.keys.remove((oldRow,oldCol))
             if app.keys == []:
                 lockR,lockC = app.lock.pop()
                 app.maze[lockR][lockC] = 1
+                app.floors.append((lockR,lockC))
 
         self.xV += self.xAcc
         self.yV += self.yAcc
@@ -185,9 +190,12 @@ def drawSpider(app):
         cx,cy = s.cx+dis*math.sin(math.radians(eyeAngle)),s.cy-dis*math.cos(math.radians(eyeAngle))
         drawCircle(cx,cy,s.r/4, fill = 'white', border = 'black',borderWidth = s.r/20)
 
-        #movable eyes
-        relAngle = math.radians(angleTo(cx,cy,app.mouseX,app.mouseY))
-        maxDis = (s.r/4-s.r/9)
-        newDis = min(maxDis,distance(cx,cy,app.mouseX,app.mouseY))
-        newCenter = (cx + math.sin(relAngle)*newDis,cy - math.cos(relAngle)*newDis)
-        drawCircle(*newCenter,s.r/9, fill = 'black')
+        if s.alive:
+            #movable eyes
+            relAngle = math.radians(angleTo(cx,cy,app.mouseX,app.mouseY))
+            maxDis = (s.r/4-s.r/9)
+            newDis = min(maxDis,distance(cx,cy,app.mouseX,app.mouseY))
+            newCenter = (cx + math.sin(relAngle)*newDis,cy - math.cos(relAngle)*newDis)
+            drawCircle(*newCenter,s.r/9, fill = 'black')
+        else:
+            drawLabel('x',cx,cy,size = s.r/2,bold = True,rotateAngle = angle)
