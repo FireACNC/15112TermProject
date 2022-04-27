@@ -1,6 +1,8 @@
 from rotateMaze import *
 from spider import *
 
+#bomb logic & draw
+
 class Bomb(object):
     def __init__(self,row,col):
         self.row, self.col = row,col

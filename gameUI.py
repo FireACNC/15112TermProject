@@ -2,6 +2,8 @@ from cmu_cs3_graphics import *
 from cmu_graphics.utils import *
 import math
 
+#UI of start and setting
+
 #draw start screen
 def drawStart(app):
     drawImage(app.images['cover'],0,0,width = app.width,height = app.height)

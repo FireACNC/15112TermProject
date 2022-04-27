@@ -1,6 +1,8 @@
 from cmu_cs3_graphics import *
 from cmu_graphics.utils import *
 
+#spider movement & draw
+
 class Spider(object):
     def __init__(self,app,row,col,color):
         self.cx, self.cy = app.gridPara[row][col][:2]

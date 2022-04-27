@@ -2,6 +2,8 @@ import socket, threading, sys, time
 from  bomb import *
 from queue import Queue
 
+#create a server on player 1's end, send information to player 2
+
 #Thanks Professor Austin for teaching me queue
 #it has to be global.
 sendQueue = Queue()

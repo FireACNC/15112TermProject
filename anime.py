@@ -1,6 +1,6 @@
 from cmu_cs3_graphics import *
 
-#Just short for animation (and I because like Anime)
+#Animation parts
 class Anime(object):
     def __init__(self,app,name):
         self.name = name
@@ -14,7 +14,6 @@ class Anime(object):
         return type(self) == type(other) and self.name == other.name
 
 def checkStatus(app):
-
     if app.status == 'Pass':
         if app.circleAnime.tick == 0:
             if app.level == 0:

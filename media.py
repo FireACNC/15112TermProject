@@ -3,6 +3,8 @@ from cmu_graphics.utils import *
 from pygame import mixer
 from PIL import Image
 
+#load music & images.
+
 # Music - Carefree Kevin MacLeod (incompetech.com)
 # Licensed under Creative Commons: By Attribution 4.0 License
 # http://creativecommons.org/licenses/by/4.0/
@@ -17,7 +19,8 @@ from PIL import Image
 #     'explode': 'https://vod.ruotongmusic.com/sv/352655e5-179ccfb54dd/352655e5-179ccfb54dd.wav',
 
 # pygame is used only for sounds
-# PIL is used for images that I drew myself.
+# PIL is used for images.
+# I drew the images by myself.
 
 
 

@@ -2,6 +2,8 @@ from cmu_cs3_graphics import *
 from cmu_graphics.utils import *
 from client import *
 
+#main file for player 2. Must open while player 1 main file running.
+
 def onAppStart(app):
     app.background = gradient('black','grey','silver',start = 'top')
     app.height,app.width = 800, 800

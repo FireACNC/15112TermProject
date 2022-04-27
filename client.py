@@ -3,6 +3,8 @@ from p2logic import *
 from queue import Queue
 import time
 
+# connect to the server of player 1 and receive / send information.
+
 #Thanks Professor Austin for teaching me queue
 #it has to be global.
 mouseClickQueue = Queue()

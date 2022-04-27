@@ -3,6 +3,8 @@ from cmu_graphics.utils import *
 import random, time, copy
 import math
 
+# generating maze, rotating maze, draw maze & small widgets (lock, key, floor, etc.)
+
 # Methods such as distance and angleTo are used from cmu graphics.
 # getCellBound is learned in class, 15112.
 
@@ -399,10 +401,8 @@ def loadGrid(app):
             for col in range(app.col):
                 if app.maze[row][col] == 0:
                     color = 'sienna'
-                elif app.maze[row][col] == 1:
+                elif app.maze[row][col] == 1 or 2:
                     color = app.background
-                elif app.maze[row][col] == 2:
-                    color = 'gold'
                 para = getCellBound(app,row,col)
                 unit = getUnit(*para,color,app,dangle)
                 paraAtAngle[row][col] = unit
