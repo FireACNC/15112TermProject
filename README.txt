@@ -3,6 +3,7 @@ It is a maze game but you are controlling the maze rather than the character.
 The game can also be played online by two players where player 2 place bombs to prevent player 1 from solving the maze.
 
 Github: https://github.com/FireACNC/15112TermProject.git
+Youtube: https://youtu.be/wgKrmeWCQVU
 
 Before exploring this project:
 1. Libraries
