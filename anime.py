@@ -18,7 +18,7 @@ def checkStatus(app):
     if app.status == 'Pass':
         if app.circleAnime.tick == 0:
             if app.level == 0:
-                app.circleAnime.cx,app.circleAnime.cy = 570,220
+                app.circleAnime.cx,app.circleAnime.cy = 620,220
             else:
                 app.circleAnime.cx,app.circleAnime.cy = app.spider.cx,app.spider.cy
             app.sound['ding'].play()

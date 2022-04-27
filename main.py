@@ -3,7 +3,11 @@ from spider import *
 from anime import *
 from gameUI import *
 from bomb import *
-from media import *
+from media import * 
+from server import *
+
+#You are at the right place! Run this file!
+#Citations are provided only at where the code is used.
 
 def onAppStart(app):
     app.background = 'wheat'
@@ -22,10 +26,12 @@ def onAppStart(app):
     app.lockAndKey = 'Disabled'
     app.double = 'Disabled'
     app.mouseX,app.mouseY = 0,0
-    initGame(app)
     loadMedia(app)
+    initGame(app)
+    startServer(app)
 
 def initGame(app):
+    app.init = True
     app.gridSize = app.width // (max(app.col,app.row) + 5)
     app.xmargin = (app.width - app.col*app.gridSize)/2
     app.ymargin = (app.height - app.row*app.gridSize)/2
@@ -92,6 +98,14 @@ def onStep(app):
     checkStatus(app)
     levelUp(app)
     app.tick += 1
+    #change sprites
+    if app.tick % 10 == 0 and app.spider.alive:
+        if app.images['spider'] == app.images['spider_0']:
+            app.images['spider'] = app.images['spider_1']
+        else:
+            app.images['spider'] = app.images['spider_0']
+    prepareInfo(app)
+    recvData(app)
 
 def doStep(app):
     app.spider.update(app)
@@ -105,10 +119,12 @@ def rotateMap(app):
     app.rotateSpeed /= 1.5
     if abs(app.rotateSpeed) < 1:
         app.rotateSpeed = 0 
-        app.sound['turn'].pause()
+        app.sound['turn'].stop()
         app.turnPlay = 0
     else:
-        app.sound['turn'].play()
+        if app.turnPlay == 0:
+            app.sound['turn'].play(loops = -1)
+            app.turnPlay += 1
     storeGrid(app)
     if app.spider.onWall: 
         app.spider.moveWithWall(app,dAngle)
@@ -171,9 +187,10 @@ def onMousePress(app,x,y):
             abs(app.mouseY - app.height*15/16) < app.height / 32):
             app.setting = not app.setting
     
-    else:
-        if app.double == 'Enabled':
-            placeBomb(app,x,y)
+    #Test code: Place bomb by yourself:
+    # else:
+    #     if app.double == 'Enabled':
+    #         placeBomb(app,x,y)
 
 
 def onKeyPress(app,event):
@@ -183,14 +200,13 @@ def onKeyPress(app,event):
 
     if event == 'escape':
         app.setting = not app.setting
+    #Test code to pause & do step
     # elif event == 's':
     #     doStep(app)
     elif event == 'r':
         initGame(app)
     elif event == 's':
         app.solve = not app.solve
-    # elif event == 'l':
-    #     lockMaze(app)
 
 def redrawAll(app):
     if app.level == 0:

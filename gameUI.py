@@ -4,46 +4,27 @@ import math
 
 #draw start screen
 def drawStart(app):
-    #border
-    drawRect(0,0,app.width,app.height,fill = None, border = 'sienna', borderWidth = app.gridSize/3)
+    drawImage(app.images['cover'],0,0,width = app.width,height = app.height)
 
-    #title
-    sizeIndex = max(app.width,app.height)/5
-    midx,midy = app.width/2,app.height/2
-    drawLabel('Spider:',midx - 0.8*sizeIndex, midy - 0.45*sizeIndex,
-        font = 'mono',size = sizeIndex*0.7,rotateAngle = -10,fill = 'sienna',bold = True)
-    drawLabel('No Way Home',midx + sizeIndex*0.1, midy + 0.15*sizeIndex,
-        font = 'mono',size = sizeIndex*0.5,rotateAngle = -10,fill = 'sienna',bold = True)
-    
     #draw a super big spider
     angle = 30
-    scx,scy,sr = 570,220,130 #specifically for 800*800
+    scx,scy,sr = 620,220,200 #specifically for 800*800
 
-    #body
-    drawCircle(scx,scy,sr/2,fill = 'black')
-    #legs
-    for leftRight in (-1,1):
-        for eachAngle in range(60,60+4*25,25):
-            legAngle = angle + leftRight * eachAngle
-            dis = sr
-            cx,cy = scx+dis*math.sin(math.radians(legAngle)),scy-dis*math.cos(math.radians(legAngle))
-            drawLine(cx,cy,scx,scy,fill = 'black',lineWidth = sr/10)
-            
+    drawImage(app.images['spider'],scx,scy,width = 200, height = 200, rotateAngle = angle,align = 'center')
+
     #eyes
-    for eyeAngle in (angle + 25, angle - 25):
-        dis = sr*0.55
+    for eyeAngle in (angle + 50, angle - 50):
+        dis = sr*0.22
         cx,cy = scx+dis*math.sin(math.radians(eyeAngle)),scy-dis*math.cos(math.radians(eyeAngle))
-        drawCircle(cx,cy,sr/4, fill = 'white', border = 'black',borderWidth = sr/20)
-
         #movable eyes
         relAngle = math.radians(angleTo(cx,cy,app.mouseX,app.mouseY))
-        maxDis = (sr/4-sr/9)
+        maxDis = sr*0.1
         newDis = min(maxDis,distance(cx,cy,app.mouseX,app.mouseY))
         newCenter = (cx + math.sin(relAngle)*newDis,cy - math.cos(relAngle)*newDis)
-        drawCircle(*newCenter,sr/9, fill = 'black')
+        drawCircle(*newCenter,sr/20, fill = 'black')
 
     alphaIndex = 2*abs(50-app.tick % 100)
-    drawLabel('Press Any Key To Start',app.width/2,app.height*0.9,
+    drawLabel('Press Any Key To Start',app.width/2,app.height*0.95,
         size = app.height*0.05, font = 'mono', fill = 'sienna',
         bold = True, opacity = alphaIndex )
 
@@ -58,7 +39,7 @@ def drawSetting(app):
         'Press Esc to get here',
     ]
     if app.double == 'Enabled':
-        instructions[2] = 'Click to Place a Bomb'
+        instructions[2] = 'Play with Your Friend!'
     for i in range(len(instructions)):
         text = instructions[i]
         drawLabel(text,app.width/2,(i+2)*app.height/15,size = app.height/30,
@@ -78,7 +59,7 @@ def drawSetting(app):
         color = None
         if abs(app.mouseX - app.width/2) < app.width*0.4 and (
             abs(app.mouseY - (1.5*i+8.5)*app.height/16) < app.height / 32):
-            color = 'tan'
+            color = 'burlyWood'
         drawRect(app.width/2,(1.5*i+8.5)*app.height/16,app.width*0.8,app.height/16,
             align = 'center', fill = color, border = 'sienna', borderWidth = 5)
         drawLabel(text,app.width/2,(1.5*i+8.5)*app.height/16,size = app.height/30,
@@ -87,7 +68,7 @@ def drawSetting(app):
     color = None
     if abs(app.mouseX - app.width/2) < app.width*0.1 and (
             abs(app.mouseY - app.height*15/16) < app.height / 32):
-            color = 'tan'
+            color = 'burlyWood'
     drawRect(app.width/2,app.height*15/16,app.width*0.2,app.height/16,
         align = 'center', fill = color, border = 'sienna', borderWidth = 5)
     drawLabel('Done',app.width/2,app.height*15/16,size = app.height/30,

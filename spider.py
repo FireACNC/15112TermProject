@@ -27,7 +27,6 @@ class Spider(object):
             if app.keys == []:
                 lockR,lockC = app.lock.pop()
                 app.maze[lockR][lockC] = 1
-                app.floors.append((lockR,lockC))
                 app.sound['unlock'].play()
 
         self.xV += self.xAcc
@@ -169,6 +168,28 @@ def pointInMaze(relx,rely,app):
     return row,col
 
 def drawSpider(app):
+    s = app.spider
+    angle = math.degrees(s.rotate)
+    rIndex = s.r*2
+
+    drawImage(app.images['spider'],s.cx,s.cy,width = rIndex, height = rIndex, rotateAngle = angle,align = 'center')
+
+    #eyes
+    for eyeAngle in (angle + 50, angle - 50):
+        dis = rIndex*0.22
+        cx,cy = s.cx+dis*math.sin(math.radians(eyeAngle)),s.cy-dis*math.cos(math.radians(eyeAngle))
+        if s.alive:
+            #movable eyes
+            relAngle = math.radians(angleTo(cx,cy,app.mouseX,app.mouseY))
+            maxDis = rIndex*0.1
+            newDis = min(maxDis,distance(cx,cy,app.mouseX,app.mouseY))
+            newCenter = (cx + math.sin(relAngle)*newDis,cy - math.cos(relAngle)*newDis)
+            drawCircle(*newCenter,rIndex/20, fill = 'black')
+        else:
+            drawLabel('x',cx,cy,size = s.r/2,bold = True,rotateAngle = angle)
+
+#Old code to draw spider using CS academy
+def drawSpiderOld(app):
     s = app.spider
     angle = math.degrees(s.rotate)
 

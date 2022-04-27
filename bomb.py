@@ -30,11 +30,13 @@ class Bomb(object):
     def __eq__(self,other):
         return type(self) == type(other) and (self.row,self.col,self.tick,self.exploded) == (other.row,other.col,other.tick,other.exploded)
 
-def placeBomb(app,x,y):
-    relx,rely = relPos(x,y,app)
-    brow,bcol = pointInMaze(relx,rely,app)
+def placeBomb(app,x,y,row = None,col = None):
+    if row == None or col == None:
+        relx,rely = relPos(x,y,app)
+        brow,bcol = pointInMaze(relx,rely,app)
+    else:
+        brow,bcol = row,col
     if not 0<=brow<app.row or not 0<=bcol<app.col: return
-    if abs(brow-app.spider.row) <= 1 and abs(bcol-app.spider.col) <= 1: return
     app.bombs.append(Bomb(brow,bcol))
     app.maze[brow][bcol] = 0
     app.sound['countdown'].play()
@@ -53,7 +55,7 @@ def updateBomb(app):
                     if app.spider.row == nrow and app.spider.col == ncol:
                         app.status = 'Pass'
                         app.spider.alive = False
-            app.sound['countdown'].pause()
+            app.sound['countdown'].stop()
             app.sound['explode'].play()
         if bomb.tick <= 0:
             pos = app.bombs.index(bomb)
@@ -68,12 +70,10 @@ def drawBomb(app):
         color = bomb[-1]
         r = app.gridSize/2
         cx,cy = bomb[:2]
+        dAngle = math.degrees(app.rotateAngle)
         if not bombOb.exploded:
-            angle = math.radians(math.degrees(app.rotateAngle)-30)
-            drawCircle(cx,cy,r/1.2,fill = color,rotateAngle = math.degrees(app.rotateAngle),align = 'center')
-            dis = r / 2.5
-            posx, posy = cx + dis * math.sin(angle), cy - dis * math.cos(angle)
-            drawCircle(posx,posy,r/3,fill = gradient('white',color,start = 'center'))
+            image = app.images['bomb_0'] if color == 'black' else app.images['bomb_1'] 
+            drawImage(image,cx,cy,width = app.gridSize, height = app.gridSize, rotateAngle = dAngle,align = 'center')
         else:
             drawCircle(cx,cy,r*(bombOb.tick/bombOb.explodeTick * 2.5), 
                 fill = gradient('white','white','yellow',start = 'center'),border = 'red',

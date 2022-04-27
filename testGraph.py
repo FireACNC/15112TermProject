@@ -1,6 +1,8 @@
 from cmu_cs3_graphics import *
 from cmu_graphics.utils import *
 
+#This file is used for testing physical movement of ball
+
 def onAppStart(app):
     app.width, app.height = 800,800
     app.mazeCx, app.mazeCy = app.width/2,app.height/2

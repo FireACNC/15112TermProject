@@ -368,17 +368,27 @@ def sideGenerateMaze(app):
 
 ################################################################################
 
+# Backtrack path solving learned from http://www.astrolog.org/labyrnth/algrithm.htm#perfect
 #There are 300 lines for writing maze, but only ONE line for solving all of them!!!
 oneLineSolve = lambda maze,path,start,end : [path] if end in path else list(map(lambda L: L if isinstance(L[0],tuple) else L[0],[ans for ans in [oneLineSolve(maze,path+[(start[0]+drow,start[1]+dcol)],(start[0]+drow,start[1]+dcol),end) for drow,dcol in [(-1,0),(0,1),(0,-1),(1,0)] if (start[0]+drow,start[1]+dcol) not in path and (0 < start[0]+drow < len(maze)) and (0 < start[1]+dcol < len(maze[0])) and maze[start[0]+drow][start[1]+dcol] == 1] if ans]))
 
 ################################################################################
 
 def drawGrid(app):
+    #draw background
+    drawImage(app.images['bg'],0,0,width = app.width,height = app.height)
+
     for row in range(app.row):
         for col in range(app.col):
             grid = app.gridPara[row][col]
             color = grid[-1]
-            drawRect(*grid[:-1],fill = color,rotateAngle = math.degrees(app.rotateAngle),align = 'center')
+            dAngle = math.degrees(app.rotateAngle)
+            if color == 'sienna':
+                cx,cy,size = grid[:3]
+                drawImage(app.images['wall'],cx,cy,width = size,height = size,align= 'center',rotateAngle = dAngle)
+            elif color == None or color == app.background:
+                cx,cy,size = grid[:3]
+                drawImage(app.images['grid'],cx,cy,width = size,height = size,align= 'center',rotateAngle = dAngle)
 
 def loadGrid(app):
     app.allGridPara = {}
@@ -417,6 +427,7 @@ def storeGrid(app):
                 unit = getUnit(*para,color,app)
                 app.gridPara[row][col] = unit
                 #cx,cy,width,height,color
+                #color is used as the very beginning version only draw rectangles
 
     app.solPara = []
     for row,col in app.sol:
@@ -441,7 +452,7 @@ def storeGrid(app):
 
     app.floorsPara = []
     for row,col in app.floors:
-        color = 'wheat'
+        color = 'burlyWood'
         para = getCellBound(app,row,col)
         unit = getUnit(*para,color,app)
         app.floorsPara.append(unit)
@@ -507,16 +518,17 @@ def lockMaze(app):
     app.keys.append(random.choice(gridLst))
 
 def drawKey(app):
+    dAngle = math.degrees(app.rotateAngle)
     for key in app.keysPara:
         cx,cy = key[:2]
-        color = key[-1]
-        drawCircle(cx,cy,app.gridSize/3,fill = color,border = 'white',borderWidth = app.gridSize/10,rotateAngle = math.degrees(app.rotateAngle),align = 'center')
+        drawImage(app.images['key'],cx,cy,width = app.gridSize,height = app.gridSize,align = 'center',rotateAngle = dAngle)
     for lock in app.lockPara:
-        color = lock[-1]
-        drawCircle(*lock[:2],app.gridSize/8,fill = 'white',rotateAngle = math.degrees(app.rotateAngle),align = 'center')
-    
+        cx,cy = lock[:2]
+        drawImage(app.images['lock'],cx,cy,width = app.gridSize,height = app.gridSize,align = 'center', rotateAngle = dAngle)
+
 def drawFloors(app):
     #because it is slow to revise the para of all maze, draw floor above instead.
     for floors in app.floorsPara:
-        color = floors[-1]
-        drawRect(*floors[:-1],fill = color,rotateAngle = math.degrees(app.rotateAngle),align = 'center')
+        cx,cy,size = floors[:3]
+        dAngle = math.degrees(app.rotateAngle)
+        drawImage(app.images['grid'],cx,cy,width = size,height = size,align= 'center',rotateAngle = dAngle)
